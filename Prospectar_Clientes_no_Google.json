@@ -1,0 +1,1264 @@
+{
+  "name": "Prospectar_Clientes_no_Google",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "41d26965-4c19-41fe-a984-56af4815417f",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        960,
+        420
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "1gsPWnoLWXjZKHia",
+          "name": "OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "=memory",
+        "contextWindowLength": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        420
+      ],
+      "id": "211512d8-1034-4959-8272-f55813759938",
+      "name": "Memory",
+      "credentials": {
+        "postgres": {
+          "id": "wZZhOCTuTZILsmQV",
+          "name": "Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        140
+      ],
+      "id": "8bbcfcd3-4572-48db-ae42-5c6bb8b54b15",
+      "name": "Chat",
+      "webhookId": "ad8bfda9-263a-423b-9f63-91f6e36e5fca"
+    },
+    {
+      "parameters": {
+        "content": "# AGENT",
+        "height": 610,
+        "width": 690,
+        "color": 6
+      },
+      "id": "412b90e7-231d-4741-b9a1-7e7c07b85c08",
+      "name": "Sticky Note95",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        900,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "bc21a394-7fcc-4b08-839e-36fdbd888cb4",
+      "name": "Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        80,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# CREATE TABLE AND FUNCTION IF NOT EXISTS",
+        "height": 510,
+        "width": 990
+      },
+      "id": "ba5fe4f9-401e-4d01-b83a-3ae79754ea72",
+      "name": "Sticky Note69",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1380,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n    EXISTS (\n        SELECT 1\n        FROM information_schema.tables\n        WHERE table_schema = 'public'\n          AND table_name = '{{ $json.table }}'\n    ) AS output;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1460,
+        840
+      ],
+      "id": "544dae0a-e64b-41f8-b034-a3320d63d2df",
+      "name": "Database Select Tables",
+      "credentials": {
+        "postgres": {
+          "id": "wZZhOCTuTZILsmQV",
+          "name": "Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE EXTENSION vector;\n\nCREATE TABLE public.\"{{ $('Variables').item.json.table }}\"\n(\n    id text NOT NULL,\n    timestamp timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    content text NOT NULL,\n    metadata jsonb NOT NULL,\n    embedding vector,\n    PRIMARY KEY (id)\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1820,
+        760
+      ],
+      "id": "b182966f-d756-45b7-98ae-90a2dd88c231",
+      "name": "Database Create Table",
+      "credentials": {
+        "postgres": {
+          "id": "wZZhOCTuTZILsmQV",
+          "name": "Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a33af4bf-6762-4992-9286-9ed0e592ab9a",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1640,
+        840
+      ],
+      "id": "ff6c0c16-52e6-4e5b-b2eb-bb2969424bde",
+      "name": "Database Check Table Exists"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE FUNCTION match_{{ $('Variables').item.json.table }} (\n  query_embedding vector,\n  match_count int default null,\n  filter jsonb DEFAULT '{}'\n) RETURNS TABLE (\n  id text,  -- Alterado para 'text'\n  content text,\n  metadata jsonb,\n  similarity float\n)\nLANGUAGE plpgsql\nAS $$\nBEGIN\n  RETURN QUERY\n  SELECT\n    id,\n    content,\n    metadata,\n    1 - ({{ $('Variables').item.json.table }}.embedding <=> query_embedding) AS similarity\n  FROM {{ $('Variables').item.json.table }}\n  WHERE metadata @> filter\n  ORDER BY {{ $('Variables').item.json.table }}.embedding <=> query_embedding\n  LIMIT match_count;\nEND;\n$$;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2000,
+        760
+      ],
+      "id": "5ad9ba40-8e06-450d-afe4-7223143f0e38",
+      "name": "Database Create Function",
+      "credentials": {
+        "postgres": {
+          "id": "wZZhOCTuTZILsmQV",
+          "name": "Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# PASSO 2\n## FUNCAO CRIAR TABELA\n\n### - Execute este fluxo para criar uma tabela no supabase para salvar os dados dos clientes prospectados.\n\n### - O campo ID sera do tipo text pois ele vai salvar o numero do telefone para quando precisarmos prospectar novamente e atualizar a tabela sem duplicar os dados.",
+        "height": 510,
+        "width": 570,
+        "color": 7
+      },
+      "id": "34162133-d3a0-4444-9863-28d44fa526d3",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        300,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# PASSO 1\n## CONFIGURAR FLUXO\n\n### - Na configuração do node \"Config Table\" e \"Prospect Customer\", selecione este workflow em \"workflow from list\"\n### - Configure suas credenciais no node \"Memory\".\n### - Configure suas credenciais do Supabase no node Postgres https://supabase.com.\n### - Configure suas credenciais do SerpAPI no node HTTP https://serpapi.com.\n### - Digite o nome da tabela que será criada no node \"Variables\".\n\n\n\n## COMO USAR O AGENT\n\n### - Crie as tabelas digitando \"Configure o aplicativo\"\n### - Pesquise clientes digitando \"Prospecte clientes\" e informe os dados que ele vai pedir (ramo de atividade, cidade, estado, pais).",
+        "height": 610,
+        "width": 570,
+        "color": 7
+      },
+      "id": "fafca3cf-ac5b-4eaf-b707-f7482b747b81",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        300,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# PASSO 3\n## FUNCAO PROSPECTAR CLIENTES\n\n### - A ideia é salvar o telefone pra disparar um WhatsAPP em outro workflow.\n\n### - O fluxo pesquisa no Google Maps atraves da SerpAPI e salva os dados na tabela (Categoria, Nome, Telefone, Endereco).\n\n### - No campo metadata sera salvo uma variavel de nome \"message_sent\" com valor \"false\". Em um outro fluxo de disparo de mensagem para WhatsApp, quando entrar em contato com o cliente pela primeira vez, o valor da variavel \"message_sent\" muda para \"true\".",
+        "height": 650,
+        "width": 570,
+        "color": 7
+      },
+      "id": "ac2926b5-6ce7-4d40-9c95-f137f3710a46",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        300,
+        1180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# OUTPUT",
+        "height": 610,
+        "width": 270,
+        "color": 3
+      },
+      "id": "f7790633-bc2a-44db-a21b-8f03a6fce4a8",
+      "name": "Sticky Note73",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1620,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5807e46-872f-4576-9b46-bce0d4bfd182",
+              "name": "response",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "76dd4cb4-f86e-4fae-8e6d-c22fb8f6693b",
+      "name": "Agent Workflow Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1700,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# OUTPUT",
+        "height": 510,
+        "width": 270,
+        "color": 3
+      },
+      "id": "8797cb30-5f91-4579-ba76-3129b8743a94",
+      "name": "Sticky Note74",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2400,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5807e46-872f-4576-9b46-bce0d4bfd182",
+              "name": "response",
+              "value": "={{ $json.response }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a5dddcad-f806-4571-8bce-9ee64d49edf6",
+      "name": "Database Workflow Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2480,
+        840
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "config",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra",
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1160,
+        1120
+      ],
+      "id": "3eb044c7-b803-4a56-93eb-8e0abd25bd76",
+      "name": "Switch Route"
+    },
+    {
+      "parameters": {
+        "name": "Config_Table",
+        "description": "=Call this tool to configure the application.\nDon't ask the user anything, just call this tool.",
+        "workflowId": {
+          "__rl": true,
+          "value": "MRhUhPulCkWBHRJh",
+          "mode": "list",
+          "cachedResultName": "Prospectar Clientes no Google"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "route",
+              "stringValue": "config"
+            }
+          ]
+        },
+        "jsonSchemaExample": ""
+      },
+      "id": "e232c60e-b0e1-40d4-ac07-4e638b95f8e1",
+      "name": "Config Table",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5807e46-872f-4576-9b46-bce0d4bfd182",
+              "name": "response",
+              "value": "Tables created successfully",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b62c7015-3336-44ef-94f0-0d2203f7379e",
+      "name": "Database Workflow Output True",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2180,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5807e46-872f-4576-9b46-bce0d4bfd182",
+              "name": "response",
+              "value": "The application is already configured",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0b11b7b2-5dae-4e44-aa52-3af006a569ae",
+      "name": "Database Workflow Output False",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2180,
+        940
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1820,
+        940
+      ],
+      "id": "eff616c8-e32d-4d92-9246-cd6643111802",
+      "name": "Database Node 01"
+    },
+    {
+      "parameters": {
+        "name": "Prospect_Customer",
+        "description": "=Call this tool only if the user uses the words prospect or research customers.\n\nDo not use it for general research purposes.\n\nThe user needs to provide the line of business they are looking for and at least one of these pieces of information: the name of the city or the name of the state or the name of the country.\n\nDo not ask for details about the line of business.",
+        "workflowId": {
+          "__rl": true,
+          "value": "MRhUhPulCkWBHRJh",
+          "mode": "list",
+          "cachedResultName": "Prospectar Clientes no Google"
+        },
+        "specifyInputSchema": true,
+        "jsonSchemaExample": "{\n  \"description\": \"Extract the description the user is looking for\"\n}"
+      },
+      "id": "76d7a6bd-a37c-4270-9041-c1951cdeffb7",
+      "name": "Prospect Customer",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1440,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# VARIABLES",
+        "height": 1190,
+        "width": 450,
+        "color": 6
+      },
+      "id": "94ce7c24-46fb-47cf-89b2-5720f82f8e54",
+      "name": "Sticky Note75",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        900,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5e53c990-504f-4a70-9996-4a4c659112ac",
+              "name": "table",
+              "value": "marketing",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        980,
+        1120
+      ],
+      "id": "984fc09b-6ad3-4f70-bfd1-e3267efe81b9",
+      "name": "Variables"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=# IDENTITY AND PURPOSE\n\n- You are an intelligent assistant responsible to coordinate and manage specific tasks.\n\n\n# GUIDELINES\n\n- Do not consider the information between [] as part of the content; it is only for your reference. Everything between [] and [/] contains information related to the same subject, marking the beginning and end of the instructions.\n\n- The current date and time is {{ $now.format('yyyy-MM-dd\\'T\\'HH:mm:ss') }}\n\n\n# OUTPUT\n\n- Avoid formal greetings like \"Hi, how can I help?\" or \"I'm here to help!\" or \"I’m available\", and other similar options.\n\n- Always be very informal, as humanized as possible, but don't use slang.\n\n- Always answer in the same language as the conversation with the user.\n\n[Step-by-Step Output]\n- Generate clear and structured output:\n  \n  - Clearly list the variables that need to be filled in by the user.\n  \n  - Each distinct idea or context in your answer should form a separate paragraph.\n  \n  - Keep each paragraph to no more than 2-5 sentences.\n  \n  - Whenever possible, use connectors (e.g., furthermore, on the other hand) to create a smooth transition between paragraphs.\n[/Step-by-Step Output]\n\n\n# INPUT\n",
+          "returnIntermediateSteps": true
+        }
+      },
+      "id": "882c23af-0ab5-4a20-a692-e1917b4b6de6",
+      "name": "Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        1120,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# INPUT",
+        "height": 1190,
+        "width": 270,
+        "color": 4
+      },
+      "id": "6fb4b0de-2938-4fa5-b1f5-688ac4ce587a",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# INPUT",
+        "height": 610,
+        "width": 270,
+        "color": 4
+      },
+      "id": "da975299-8c62-42eb-a9f8-c01cfd5abd7b",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# OUTPUT",
+        "height": 650,
+        "width": 270,
+        "color": 3
+      },
+      "id": "52e4b43f-5808-47e7-9640-a33e29e45327",
+      "name": "Sticky Note72",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3320,
+        1180
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5807e46-872f-4576-9b46-bce0d4bfd182",
+              "name": "response",
+              "value": "={{ $json.response }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "19f17f5f-75c5-4bb0-ab54-11ec7cb984fc",
+      "name": "Workflow Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3400,
+        1380
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5807e46-872f-4576-9b46-bce0d4bfd182",
+              "name": "response",
+              "value": "I didn't find any customer with a registered phone number",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bed2febc-bb41-4b50-a55c-9d33836dcd49",
+      "name": "Workflow Output False",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3080,
+        1540
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5fbffc54-8439-4a61-a45b-d83a8ea41898",
+              "name": "description",
+              "value": "={{ $json.query.description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1460,
+        1500
+      ],
+      "id": "27b60d84-706e-41af-a06e-3694412642ee",
+      "name": "Variables Input"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5807e46-872f-4576-9b46-bce0d4bfd182",
+              "name": "response",
+              "value": "Successfully prospected clients",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "913e86d6-c2ea-4172-9df0-9a5d83221c1a",
+      "name": "Workflow Output True",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3080,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Função para limpar o telefone\nfunction limparTelefone(telefone) {\n    return telefone\n        .replace(/\\D/g, '') // Remove todos os caracteres não numéricos\n        .replace(/^0+/, ''); // Remove zeros à esquerda (se houver)\n}\n\n// Obtém todos os itens de entrada\nconst items = $input.all();\n\n// Acessa a variável do nome da tabela (supondo que você tenha essa variável)\nconst tableName = $('Variables').last().json.table; // Aqui você substitui pela sua variável real\n\n// Array para armazenar os objetos de saída\nlet output = [];\n\n// Processa cada item\nitems.forEach(item => {\n    const description = item.json.description || \"\"; // Obtém a descrição\n    const category = item.json.category || \"\"; // Obtém a categoria\n    const title = item.json.title || \"\"; // Obtém o título\n    const phone = item.json.phone || \"\"; // Obtém o telefone\n    const address = item.json.address || \"\"; // Obtém o endereço\n\n    // Limpa o telefone somente para o campo \"id\"\n    const phoneLimpo = limparTelefone(phone);\n\n    // Adiciona a variável \"message_sent\" com valor \"false\" ao metadata\n    const metadataWithMessageSent = { \n        ...item.json, \n        message_sent: \"false\", // Agora \"false\" é uma string correta\n        description: description, // Adicionando \"description\" ao metadata\n        category: category // Adicionando \"category\" ao metadata\n    };\n\n    // Cria o conteúdo concatenado com a ordem: description, category, title, phone, address, message_sent\n    const content = `${description}, ${category}, ${title}, ${phone}, ${address}, ${metadataWithMessageSent.message_sent}`.replace(/'/g, \"''\"); // Escapando aspas simples\n    \n    // Serializa o novo objeto metadata, incluindo a variável \"message_sent\", \"description\" e \"category\"\n    const metadata = JSON.stringify(metadataWithMessageSent).replace(/'/g, \"''\"); // Escapando aspas simples\n\n    // Cria a query SQL com 'phone' sendo usado como 'id' e sem modificar o telefone no content\n    let query = `\nINSERT INTO ${tableName} (id, content, metadata)\nVALUES ('${phoneLimpo}', '${content}', '${metadata}')\nON CONFLICT (id)\nDO UPDATE SET content = EXCLUDED.content, metadata = EXCLUDED.metadata;\n`;\n\n    // Remove as quebras de linha do código gerado (substitui \\n por um espaço ou nada)\n    query = query.replace(/\\n/g, ' ').replace(/\\s+/g, ' ').trim(); // Substitui múltiplos espaços por um único espaço\n\n    // Adiciona o objeto com a query ao array de saída\n    output.push({ json: { query: query } });\n});\n\n// Retorna os objetos de saída\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2720,
+        1280
+      ],
+      "id": "58a80086-e8e1-4d78-bf17-f8ee5723fb6c",
+      "name": "Create Query"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2900,
+        1280
+      ],
+      "id": "f8a02e7f-8de2-4ce6-84e9-55c3d63d0858",
+      "name": "Insert or Update",
+      "credentials": {
+        "postgres": {
+          "id": "n1TuPhLcvORN2q0i",
+          "name": "Postgres - PgVector"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# INSERT OR UPDATE",
+        "height": 650,
+        "width": 1908
+      },
+      "id": "d696121a-804c-4b2e-ae55-5cffde76b49b",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1380,
+        1180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Acessa a saída do nó 'Check Status'\nconst checkStatusNode = $node['Check Status'];\n\n// Verifica se o nó 'Check Status' existe\nif (!checkStatusNode) {\n    throw new Error(\"O nó 'Check Status' não foi encontrado.\");\n}\n\n// Obtém os dados JSON do nó 'Check Status'\nconst inputData = checkStatusNode.json;\n\n// Verifica se os dados estão no formato esperado\nif (!inputData || !Array.isArray(inputData.local_results)) {\n    throw new Error(\"Os dados do nó 'Check Status' estão ausentes ou no formato incorreto.\");\n}\n\n// Obtém o valor da variável 'category' de '{{ $json.output.category }}'\nconst category = $json.output.category || \"\";\n\n// Usamos um conjunto para rastrear os telefones já processados\nconst outputData = [];\nconst processedPhones = new Set(); // Conjunto para armazenar telefones processados\n\n// Itera pelos resultados locais ('local_results')\ninputData.local_results.forEach(localResult => {\n    // Verifica se o 'phone' existe e ainda não foi processado\n    if (localResult.phone && !processedPhones.has(localResult.phone)) {\n        // Adiciona o telefone ao conjunto para evitar duplicação\n        processedPhones.add(localResult.phone);\n\n        // Adiciona o item processado à saída\n        outputData.push({\n            description: inputData.search_parameters?.q || \"\", // Acessa 'search_parameters.q' se existir\n            category: category, // Adiciona a variável 'category' na posição desejada\n            title: localResult.title || \"\",\n            phone: localResult.phone || \"\",\n            address: localResult.address || \"\"\n        });\n    }\n});\n\n// Retorna os dados processados no formato esperado pelo n8n\nreturn outputData.map(result => ({ json: result }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2360,
+        1360
+      ],
+      "id": "7c81ba19-b164-4344-a4b1-c57155457274",
+      "name": "Aggregate Variable",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b2368afa-5d58-4750-973f-4abc6c042c5d",
+              "leftValue": "={{ $json.isEmpty() }}",
+              "rightValue": "Success",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2540,
+        1360
+      ],
+      "id": "507a149e-bc55-4c30-8f5f-68921a705fab",
+      "name": "Check Phone"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b2368afa-5d58-4750-973f-4abc6c042c5d",
+              "leftValue": "={{ $json.search_metadata.status }}",
+              "rightValue": "Success",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1820,
+        1500
+      ],
+      "id": "20f662ea-bb7d-45ae-ab00-978119686e37",
+      "name": "Check Status"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2720,
+        1640
+      ],
+      "id": "c2b91aac-9021-41a4-8ac2-822cf3310507",
+      "name": "Node 06"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2720,
+        1440
+      ],
+      "id": "8da63167-4d83-40c0-b31a-402f7b6c9dc5",
+      "name": "Node 04"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2020,
+        1640
+      ],
+      "id": "ee10ccec-c050-4b47-be63-e4232c395f52",
+      "name": "Node 05"
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "serpApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "engine",
+              "value": "google_maps"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json.description }}"
+            },
+            {
+              "name": "type",
+              "value": "search"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1640,
+        1500
+      ],
+      "id": "004169b2-da73-4a15-b42a-ff0405594f81",
+      "name": "HTTP Request Search",
+      "alwaysOutputData": true,
+      "credentials": {
+        "serpApi": {
+          "id": "07hPwYQYSqtoac3H",
+          "name": "SerpApi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $('Variables Input').item.json.description }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "category",
+              "description": "=Extract the category from the message.\nThe category name must be one word only."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1,
+      "position": [
+        2020,
+        1360
+      ],
+      "id": "57533838-bd47-40fb-9f57-f61983aa7cf3",
+      "name": "Information Extractor"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow": {
+      "main": [
+        [
+          {
+            "node": "Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Database Select Tables": {
+      "main": [
+        [
+          {
+            "node": "Database Check Table Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Database Create Table": {
+      "main": [
+        [
+          {
+            "node": "Database Create Function",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Database Check Table Exists": {
+      "main": [
+        [
+          {
+            "node": "Database Create Table",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Database Node 01",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Database Create Function": {
+      "main": [
+        [
+          {
+            "node": "Database Workflow Output True",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Route": {
+      "main": [
+        [
+          {
+            "node": "Database Select Tables",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Variables Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config Table": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Database Workflow Output True": {
+      "main": [
+        [
+          {
+            "node": "Database Workflow Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Database Workflow Output False": {
+      "main": [
+        [
+          {
+            "node": "Database Workflow Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Database Node 01": {
+      "main": [
+        [
+          {
+            "node": "Database Workflow Output False",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prospect Customer": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variables": {
+      "main": [
+        [
+          {
+            "node": "Switch Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent": {
+      "main": [
+        [
+          {
+            "node": "Agent Workflow Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Output False": {
+      "main": [
+        [
+          {
+            "node": "Workflow Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variables Input": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Output True": {
+      "main": [
+        [
+          {
+            "node": "Workflow Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Query": {
+      "main": [
+        [
+          {
+            "node": "Insert or Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or Update": {
+      "main": [
+        [
+          {
+            "node": "Workflow Output True",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Variable": {
+      "main": [
+        [
+          {
+            "node": "Check Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Phone": {
+      "main": [
+        [
+          {
+            "node": "Create Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Node 04",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Node 05",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Node 06": {
+      "main": [
+        [
+          {
+            "node": "Workflow Output False",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Node 04": {
+      "main": [
+        [
+          {
+            "node": "Workflow Output False",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Node 05": {
+      "main": [
+        [
+          {
+            "node": "Node 06",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Search": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Variable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2a72cdfc-1209-4a65-85b9-34cca860a834",
+  "meta": {
+    "instanceId": "8198b957c2048f3ee737c5ff186a502fb09a040f8dfa83b9979837baf9c9a2e4"
+  },
+  "id": "Vo04yHLk9AueqYWb",
+  "tags": []
+}
