@@ -5,13 +5,13 @@
       "parameters": {
         "options": {}
       },
-      "id": "41d26965-4c19-41fe-a984-56af4815417f",
+      "id": "d4c89437-e1dc-4b6a-9dcb-c732fe728ba6",
       "name": "OpenAI",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1,
       "position": [
-        960,
-        420
+        600,
+        200
       ],
       "credentials": {
         "openAiApi": {
@@ -28,10 +28,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
       "typeVersion": 1.3,
       "position": [
-        1120,
-        420
+        760,
+        200
       ],
-      "id": "211512d8-1034-4959-8272-f55813759938",
+      "id": "aef2e7b5-fce7-4776-8c0a-29fd51d61f84",
       "name": "Memory",
       "credentials": {
         "postgres": {
@@ -47,10 +47,10 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.1,
       "position": [
-        80,
-        140
+        -280,
+        -80
       ],
-      "id": "8bbcfcd3-4572-48db-ae42-5c6bb8b54b15",
+      "id": "d3bbc380-7969-46b4-83e2-8fd93af4db55",
       "name": "Chat",
       "webhookId": "ad8bfda9-263a-423b-9f63-91f6e36e5fca"
     },
@@ -61,24 +61,24 @@
         "width": 690,
         "color": 6
       },
-      "id": "412b90e7-231d-4741-b9a1-7e7c07b85c08",
+      "id": "aa6b1ec9-1ea3-46e4-9a8b-e69a53dbe06c",
       "name": "Sticky Note95",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        900,
-        0
+        540,
+        -220
       ]
     },
     {
       "parameters": {},
-      "id": "bc21a394-7fcc-4b08-839e-36fdbd888cb4",
+      "id": "bb267967-3903-40f2-b47b-d17506ce8477",
       "name": "Workflow",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        80,
-        1120
+        -280,
+        900
       ]
     },
     {
@@ -87,13 +87,13 @@
         "height": 510,
         "width": 990
       },
-      "id": "ba5fe4f9-401e-4d01-b83a-3ae79754ea72",
+      "id": "26e7ebc7-6c82-40c9-9c69-20be461c9333",
       "name": "Sticky Note69",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1380,
-        640
+        1020,
+        420
       ]
     },
     {
@@ -105,10 +105,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        1460,
-        840
+        1100,
+        620
       ],
-      "id": "544dae0a-e64b-41f8-b034-a3320d63d2df",
+      "id": "e0b26746-7e4f-4109-96b1-71e7c48c24d5",
       "name": "Database Select Tables",
       "credentials": {
         "postgres": {
@@ -120,16 +120,16 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "CREATE EXTENSION vector;\n\nCREATE TABLE public.\"{{ $('Variables').item.json.table }}\"\n(\n    id text NOT NULL,\n    timestamp timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    content text NOT NULL,\n    metadata jsonb NOT NULL,\n    embedding vector,\n    PRIMARY KEY (id)\n);",
+        "query": "CREATE EXTENSION IF NOT EXISTS vector;\n\nCREATE TABLE public.\"{{ $('Variables').item.json.table }}\"\n(\n    id text NOT NULL,\n    timestamp timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    content text NOT NULL,\n    metadata jsonb NOT NULL,\n    embedding vector,\n    PRIMARY KEY (id)\n);",
         "options": {}
       },
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        1820,
-        760
+        1460,
+        540
       ],
-      "id": "b182966f-d756-45b7-98ae-90a2dd88c231",
+      "id": "ffae1ef2-0591-41f3-9805-45da9a1887c4",
       "name": "Database Create Table",
       "credentials": {
         "postgres": {
@@ -169,10 +169,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1640,
-        840
+        1280,
+        620
       ],
-      "id": "ff6c0c16-52e6-4e5b-b2eb-bb2969424bde",
+      "id": "440ef5b3-82c5-4181-bb46-d6a754461e6f",
       "name": "Database Check Table Exists"
     },
     {
@@ -184,10 +184,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        2000,
-        760
+        1640,
+        540
       ],
-      "id": "5ad9ba40-8e06-450d-afe4-7223143f0e38",
+      "id": "b299e1c4-aa72-46a4-8841-ddd0a68d6e11",
       "name": "Database Create Function",
       "credentials": {
         "postgres": {
@@ -203,13 +203,13 @@
         "width": 570,
         "color": 7
       },
-      "id": "34162133-d3a0-4444-9863-28d44fa526d3",
+      "id": "c6dc55dc-e203-406a-bfc4-8a761bf9367d",
       "name": "Sticky Note2",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        300,
-        640
+        -60,
+        420
       ]
     },
     {
@@ -219,13 +219,13 @@
         "width": 570,
         "color": 7
       },
-      "id": "fafca3cf-ac5b-4eaf-b707-f7482b747b81",
+      "id": "3c7139d1-c787-40c9-babe-1b254bb23732",
       "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        300,
-        0
+        -60,
+        -220
       ]
     },
     {
@@ -235,13 +235,13 @@
         "width": 570,
         "color": 7
       },
-      "id": "ac2926b5-6ce7-4d40-9c95-f137f3710a46",
+      "id": "e7cd9fa0-b83d-426b-9b71-46937a685ad7",
       "name": "Sticky Note5",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        300,
-        1180
+        -60,
+        960
       ]
     },
     {
@@ -251,13 +251,13 @@
         "width": 270,
         "color": 3
       },
-      "id": "f7790633-bc2a-44db-a21b-8f03a6fce4a8",
+      "id": "3579fa8d-aa68-40f7-ad01-40ec765e07c8",
       "name": "Sticky Note73",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1620,
-        0
+        1260,
+        -220
       ]
     },
     {
@@ -274,13 +274,13 @@
         },
         "options": {}
       },
-      "id": "76dd4cb4-f86e-4fae-8e6d-c22fb8f6693b",
+      "id": "f493a8a4-f162-458b-8f3a-41e2d6e0f92c",
       "name": "Agent Workflow Output",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1700,
-        140
+        1340,
+        -80
       ]
     },
     {
@@ -290,13 +290,13 @@
         "width": 270,
         "color": 3
       },
-      "id": "8797cb30-5f91-4579-ba76-3129b8743a94",
+      "id": "6f09b81b-c4ab-4006-a201-7d10b96a066a",
       "name": "Sticky Note74",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        2400,
-        640
+        2040,
+        420
       ]
     },
     {
@@ -313,13 +313,13 @@
         },
         "options": {}
       },
-      "id": "a5dddcad-f806-4571-8bce-9ee64d49edf6",
+      "id": "168a143d-4c68-4b9c-bcdc-25f5a5d886de",
       "name": "Database Workflow Output",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2480,
-        840
+        2120,
+        620
       ]
     },
     {
@@ -358,10 +358,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        1160,
-        1120
+        800,
+        900
       ],
-      "id": "3eb044c7-b803-4a56-93eb-8e0abd25bd76",
+      "id": "9ee05ef3-630d-441a-a994-24bf3fdc74e7",
       "name": "Switch Route"
     },
     {
@@ -384,13 +384,13 @@
         },
         "jsonSchemaExample": ""
       },
-      "id": "e232c60e-b0e1-40d4-ac07-4e638b95f8e1",
+      "id": "41ee2bdd-82d4-40b8-94fa-12af1993e053",
       "name": "Config Table",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 1.2,
       "position": [
-        1280,
-        420
+        920,
+        200
       ]
     },
     {
@@ -407,13 +407,13 @@
         },
         "options": {}
       },
-      "id": "b62c7015-3336-44ef-94f0-0d2203f7379e",
+      "id": "13dc374f-108e-4679-a63e-d057cd0733f9",
       "name": "Database Workflow Output True",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2180,
-        760
+        1820,
+        540
       ]
     },
     {
@@ -430,13 +430,13 @@
         },
         "options": {}
       },
-      "id": "0b11b7b2-5dae-4e44-aa52-3af006a569ae",
+      "id": "374e52c6-9267-4f48-a9ca-785be830b77c",
       "name": "Database Workflow Output False",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2180,
-        940
+        1820,
+        720
       ]
     },
     {
@@ -444,10 +444,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1820,
-        940
+        1460,
+        720
       ],
-      "id": "eff616c8-e32d-4d92-9246-cd6643111802",
+      "id": "9b815b9f-ab19-4154-8030-6aa2dd214159",
       "name": "Database Node 01"
     },
     {
@@ -463,13 +463,13 @@
         "specifyInputSchema": true,
         "jsonSchemaExample": "{\n  \"description\": \"Extract the description the user is looking for\"\n}"
       },
-      "id": "76d7a6bd-a37c-4270-9041-c1951cdeffb7",
+      "id": "f82d748c-52e0-48c5-a9ba-ea9b5891379e",
       "name": "Prospect Customer",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 1.2,
       "position": [
-        1440,
-        420
+        1080,
+        200
       ]
     },
     {
@@ -479,13 +479,13 @@
         "width": 450,
         "color": 6
       },
-      "id": "94ce7c24-46fb-47cf-89b2-5720f82f8e54",
+      "id": "eafac94a-52bd-4ca7-bd3a-5de72d3eda96",
       "name": "Sticky Note75",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        900,
-        640
+        540,
+        420
       ]
     },
     {
@@ -506,10 +506,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        980,
-        1120
+        620,
+        900
       ],
-      "id": "984fc09b-6ad3-4f70-bfd1-e3267efe81b9",
+      "id": "ed3c65c4-30de-4a1c-be7f-f07ccb503408",
       "name": "Variables"
     },
     {
@@ -519,13 +519,13 @@
           "returnIntermediateSteps": true
         }
       },
-      "id": "882c23af-0ab5-4a20-a692-e1917b4b6de6",
+      "id": "83448437-d754-4aad-851c-c6158ff4acd7",
       "name": "Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.6,
       "position": [
-        1120,
-        140
+        760,
+        -80
       ]
     },
     {
@@ -535,13 +535,13 @@
         "width": 270,
         "color": 4
       },
-      "id": "6fb4b0de-2938-4fa5-b1f5-688ac4ce587a",
+      "id": "eea6d330-93e7-4806-bd76-9577cc51f9ad",
       "name": "Sticky Note3",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        0,
-        640
+        -360,
+        420
       ]
     },
     {
@@ -551,13 +551,13 @@
         "width": 270,
         "color": 4
       },
-      "id": "da975299-8c62-42eb-a9f8-c01cfd5abd7b",
+      "id": "7076f143-aa9c-4e5d-8d51-f18566c6e65e",
       "name": "Sticky Note7",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        0,
-        0
+        -360,
+        -220
       ]
     },
     {
@@ -567,13 +567,13 @@
         "width": 270,
         "color": 3
       },
-      "id": "52e4b43f-5808-47e7-9640-a33e29e45327",
+      "id": "398ab622-2837-475f-9938-f148c1e723ca",
       "name": "Sticky Note72",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        3320,
-        1180
+        2960,
+        960
       ]
     },
     {
@@ -590,13 +590,13 @@
         },
         "options": {}
       },
-      "id": "19f17f5f-75c5-4bb0-ab54-11ec7cb984fc",
+      "id": "a9334734-8dc9-4e4b-8c6b-b5bfcd9d68ff",
       "name": "Workflow Output",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3400,
-        1380
+        3040,
+        1160
       ]
     },
     {
@@ -613,13 +613,13 @@
         },
         "options": {}
       },
-      "id": "bed2febc-bb41-4b50-a55c-9d33836dcd49",
+      "id": "088bd821-312b-48c1-a144-5834819b7eb9",
       "name": "Workflow Output False",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3080,
-        1540
+        2720,
+        1320
       ]
     },
     {
@@ -639,10 +639,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1460,
-        1500
+        1100,
+        1280
       ],
-      "id": "27b60d84-706e-41af-a06e-3694412642ee",
+      "id": "6bd62ef5-d1a3-4e60-a06e-1120fdbe73c8",
       "name": "Variables Input"
     },
     {
@@ -659,13 +659,13 @@
         },
         "options": {}
       },
-      "id": "913e86d6-c2ea-4172-9df0-9a5d83221c1a",
+      "id": "2d9ca901-89ea-440f-b1c7-a8cabc3c77ae",
       "name": "Workflow Output True",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3080,
-        1280
+        2720,
+        1060
       ]
     },
     {
@@ -675,10 +675,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2720,
-        1280
+        2360,
+        1060
       ],
-      "id": "58a80086-e8e1-4d78-bf17-f8ee5723fb6c",
+      "id": "4226f055-0a34-465d-8c1a-a485de0d684c",
       "name": "Create Query"
     },
     {
@@ -690,10 +690,10 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        2900,
-        1280
+        2540,
+        1060
       ],
-      "id": "f8a02e7f-8de2-4ce6-84e9-55c3d63d0858",
+      "id": "064fc0fc-3adb-46d7-9d11-440a3e69324e",
       "name": "Insert or Update",
       "credentials": {
         "postgres": {
@@ -708,26 +708,26 @@
         "height": 650,
         "width": 1908
       },
-      "id": "d696121a-804c-4b2e-ae55-5cffde76b49b",
+      "id": "cb7a733b-7bdc-422c-8343-242b21510903",
       "name": "Sticky Note6",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1380,
-        1180
+        1020,
+        960
       ]
     },
     {
       "parameters": {
-        "jsCode": "// Acessa a saída do nó 'Check Status'\nconst checkStatusNode = $node['Check Status'];\n\n// Verifica se o nó 'Check Status' existe\nif (!checkStatusNode) {\n    throw new Error(\"O nó 'Check Status' não foi encontrado.\");\n}\n\n// Obtém os dados JSON do nó 'Check Status'\nconst inputData = checkStatusNode.json;\n\n// Verifica se os dados estão no formato esperado\nif (!inputData || !Array.isArray(inputData.local_results)) {\n    throw new Error(\"Os dados do nó 'Check Status' estão ausentes ou no formato incorreto.\");\n}\n\n// Obtém o valor da variável 'category' de '{{ $json.output.category }}'\nconst category = $json.output.category || \"\";\n\n// Usamos um conjunto para rastrear os telefones já processados\nconst outputData = [];\nconst processedPhones = new Set(); // Conjunto para armazenar telefones processados\n\n// Itera pelos resultados locais ('local_results')\ninputData.local_results.forEach(localResult => {\n    // Verifica se o 'phone' existe e ainda não foi processado\n    if (localResult.phone && !processedPhones.has(localResult.phone)) {\n        // Adiciona o telefone ao conjunto para evitar duplicação\n        processedPhones.add(localResult.phone);\n\n        // Adiciona o item processado à saída\n        outputData.push({\n            description: inputData.search_parameters?.q || \"\", // Acessa 'search_parameters.q' se existir\n            category: category, // Adiciona a variável 'category' na posição desejada\n            title: localResult.title || \"\",\n            phone: localResult.phone || \"\",\n            address: localResult.address || \"\"\n        });\n    }\n});\n\n// Retorna os dados processados no formato esperado pelo n8n\nreturn outputData.map(result => ({ json: result }));"
+        "jsCode": "// Accesses the output of the 'Check Status' node\nconst checkStatusNode = $node['Check Status'];\n\n// Checks if the 'Check Status' node exists\nif (!checkStatusNode) {\n    throw new Error(\"The 'Check Status' node was not found.\");\n}\n\n// Gets the JSON data from the 'Check Status' node\nconst inputData = checkStatusNode.json;\n\n// Checks if the data is in the expected format\nif (!inputData || !Array.isArray(inputData.local_results)) {\n    throw new Error(\"The data from the 'Check Status' node is missing or in the wrong format.\");\n}\n\n// Gets the value of the 'category' variable from '{{ $json.output.category }}'\nconst category = $json.output.category || \"\";\n\n// We use a set to track the phones that have already been processed\nconst outputData = [];\nconst processedPhones = new Set(); // Set to store processed phones\n\n// Iterates through the local results ('local_results')\ninputData.local_results.forEach(localResult => {\n    // Checks if the 'phone' exists and has not been processed yet\n    if (localResult.phone && !processedPhones.has(localResult.phone)) {\n        // Adds the phone to the set to avoid duplication\n        processedPhones.add(localResult.phone);\n\n        // Adds the processed item to the output\n        outputData.push({\n            description: inputData.search_parameters?.q || \"\", // Accesses 'search_parameters.q' if it exists\n            category: category, // Adds the 'category' variable in the desired position\n            title: localResult.title || \"\",\n            phone: localResult.phone || \"\",\n            address: localResult.address || \"\"\n        });\n    }\n});\n\n// Returns the processed data in the format expected by n8n\nreturn outputData.map(result => ({ json: result }));"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2360,
-        1360
+        2000,
+        1140
       ],
-      "id": "7c81ba19-b164-4344-a4b1-c57155457274",
+      "id": "d2ed4880-b7c3-454c-8cc2-279264197d27",
       "name": "Aggregate Variable",
       "alwaysOutputData": true
     },
@@ -760,10 +760,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2540,
-        1360
+        2180,
+        1140
       ],
-      "id": "507a149e-bc55-4c30-8f5f-68921a705fab",
+      "id": "959bec3e-5ba7-4107-a908-792f233de7bd",
       "name": "Check Phone"
     },
     {
@@ -794,10 +794,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1820,
-        1500
+        1460,
+        1280
       ],
-      "id": "20f662ea-bb7d-45ae-ab00-978119686e37",
+      "id": "87b51244-b38f-494a-820f-2129469db863",
       "name": "Check Status"
     },
     {
@@ -805,10 +805,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        2720,
-        1640
+        2360,
+        1420
       ],
-      "id": "c2b91aac-9021-41a4-8ac2-822cf3310507",
+      "id": "4daf1964-080f-40e8-b9aa-d5f75764d9f7",
       "name": "Node 06"
     },
     {
@@ -816,10 +816,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        2720,
-        1440
+        2360,
+        1220
       ],
-      "id": "8da63167-4d83-40c0-b31a-402f7b6c9dc5",
+      "id": "f6cb8b57-3b26-42d1-bafa-7dc228ed8d92",
       "name": "Node 04"
     },
     {
@@ -827,10 +827,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        2020,
-        1640
+        1660,
+        1420
       ],
-      "id": "ee10ccec-c050-4b47-be63-e4232c395f52",
+      "id": "f46bc166-5bcf-40d8-b815-b83f26993d7c",
       "name": "Node 05"
     },
     {
@@ -860,10 +860,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1640,
-        1500
+        1280,
+        1280
       ],
-      "id": "004169b2-da73-4a15-b42a-ff0405594f81",
+      "id": "d0ae40dd-e2e6-4e43-8082-8c8ec338d8de",
       "name": "HTTP Request Search",
       "alwaysOutputData": true,
       "credentials": {
@@ -889,10 +889,10 @@
       "type": "@n8n/n8n-nodes-langchain.informationExtractor",
       "typeVersion": 1,
       "position": [
-        2020,
-        1360
+        1660,
+        1140
       ],
-      "id": "57533838-bd47-40fb-9f57-f61983aa7cf3",
+      "id": "8581c9cf-26a8-4677-b166-41d25dce141f",
       "name": "Information Extractor"
     }
   ],
@@ -1255,10 +1255,11 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "2a72cdfc-1209-4a65-85b9-34cca860a834",
+  "versionId": "8e2c98c5-952f-4911-b1d7-cad90de6f71f",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "8198b957c2048f3ee737c5ff186a502fb09a040f8dfa83b9979837baf9c9a2e4"
   },
-  "id": "Vo04yHLk9AueqYWb",
+  "id": "MzTA7oThLsYSy40U",
   "tags": []
 }
